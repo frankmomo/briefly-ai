@@ -3,6 +3,7 @@
 // Usage: node start.js
 // ============================================================
 import { config } from 'dotenv';
+import http from 'node:http';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -22,6 +23,22 @@ const processRole = (
 
 if (processRole === 'worker') {
   console.log('[start.js] Starting Briefly worker.');
+  const port = process.env.PORT || 3001;
+  http
+    .createServer((req, res) => {
+      if (req.url === '/api/health') {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, service: 'briefly-worker' }));
+        return;
+      }
+
+      res.writeHead(404, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ error: 'not_found' }));
+    })
+    .listen(port, () => {
+      console.log(`[start.js] Worker healthcheck listening on port ${port}.`);
+    });
+
   await import('./src/worker/summarizer-worker.js');
 } else {
   console.log('[start.js] Starting Briefly API.');

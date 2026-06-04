@@ -13,6 +13,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # Código
+COPY start.js ./
 COPY src/ ./src/
 
 EXPOSE 3001
