@@ -5,6 +5,9 @@ import { google } from 'googleapis';
 import { getGoogleTokens, saveGoogleTokens } from './supabase.js';
 
 const SCOPES = [
+  'openid',
+  'email',
+  'profile',
   'https://www.googleapis.com/auth/gmail.readonly',
   'https://www.googleapis.com/auth/drive.readonly',
   'https://www.googleapis.com/auth/calendar.readonly',
