@@ -156,7 +156,7 @@ export async function hasActiveSubscription(userId) {
  * Obtiene usuarios activos con tokens de Google configurados.
  * Usado por el cron para saber a quiénes generar briefing.
  */
-export async function getActiveSubscribersWithTokens() {
+async function getActiveSubscribersWithTokensUsingJoin() {
   const { data, error } = await supabase
     .from('subscriptions')
     .select(`
@@ -177,4 +177,37 @@ export async function getActiveSubscribersWithTokens() {
   return (data || []).filter((s) => {
     return s.current_period_end && new Date(s.current_period_end) > now;
   });
+}
+
+export async function getActiveSubscribersWithTokens() {
+  const { data: subscriptions, error: subscriptionsError } = await supabase
+    .from('subscriptions')
+    .select('user_id, status, current_period_end')
+    .in('status', ['active', 'trialing']);
+
+  if (subscriptionsError) {
+    console.error(`[Supabase] getActiveSubscribersWithTokens subscriptions error: ${subscriptionsError.message}`);
+    return [];
+  }
+
+  const now = new Date();
+  const activeSubscriptions = (subscriptions || []).filter((subscription) => {
+    return subscription.current_period_end && new Date(subscription.current_period_end) > now;
+  });
+
+  if (activeSubscriptions.length === 0) return [];
+
+  const activeUserIds = activeSubscriptions.map((subscription) => subscription.user_id);
+  const { data: tokens, error: tokensError } = await supabase
+    .from('google_tokens')
+    .select('user_id')
+    .in('user_id', activeUserIds);
+
+  if (tokensError) {
+    console.error(`[Supabase] getActiveSubscribersWithTokens tokens error: ${tokensError.message}`);
+    return [];
+  }
+
+  const usersWithTokens = new Set((tokens || []).map((token) => token.user_id));
+  return activeSubscriptions.filter((subscription) => usersWithTokens.has(subscription.user_id));
 }
