@@ -16,7 +16,9 @@ const PORT = process.env.PORT || 3001;
 
 // ─── Middleware ───────────────────────────────────────────────
 // IMPORTANTE: helmet + cors ANTES de cualquier body parser
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use(cors({ origin: process.env.APP_URL }));
 
 // ─── Routes ──────────────────────────────────────────────────
