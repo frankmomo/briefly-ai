@@ -11,14 +11,37 @@ import { supabase } from '../../lib/supabase.js';
 
 export const webhookRouter = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+let stripeClient;
 
-if (!endpointSecret) {
-  console.warn('[Webhooks] WARN: STRIPE_WEBHOOK_SECRET no configurado. Los webhooks no verificarán firma.');
+function isPlaceholder(value) {
+  return !value || /x{4,}|tu_|placeholder|example/i.test(value);
+}
+
+function isStripeSecretKey(value) {
+  return /^sk_(live|test)_[A-Za-z0-9_]+$/.test(value || '') && !isPlaceholder(value);
+}
+
+function isWebhookSecret(value) {
+  return /^whsec_[A-Za-z0-9_]+$/.test(value || '') && !isPlaceholder(value);
+}
+
+function getStripe() {
+  if (!isStripeSecretKey(process.env.STRIPE_SECRET_KEY)) {
+    return null;
+  }
+  stripeClient ||= new Stripe(process.env.STRIPE_SECRET_KEY);
+  return stripeClient;
 }
 
 webhookRouter.post('/stripe', raw({ type: 'application/json' }), async (req, res) => {
+  const stripe = getStripe();
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!stripe || !isWebhookSecret(endpointSecret)) {
+    console.error('[Webhook] Stripe no esta configurado correctamente.');
+    return res.status(503).send('Stripe webhook not configured');
+  }
+
   // Extraer firma (rawBody lo obtiene porque express.raw() NO usa JSON.parse)
   const sig = req.headers['stripe-signature'];
   if (!sig) {

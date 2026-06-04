@@ -37,6 +37,15 @@ function createRedisConnection() {
   });
 }
 
+function safeRedisLabel(url) {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.protocol}//${parsed.hostname}:${parsed.port || 'default'}`;
+  } catch {
+    return '(invalid REDIS_URL)';
+  }
+}
+
 const connection = createRedisConnection();
 
 const worker = new Worker(
@@ -166,7 +175,7 @@ worker.on('error', (err) => {
 });
 
 console.log('[Worker] 🟢 Summarizer worker started. Waiting for jobs...');
-console.log(`[Worker] Concurrency: 5, Redis: ${process.env.REDIS_URL?.substring(0, 30)}...`);
+console.log(`[Worker] Concurrency: 5, Redis: ${safeRedisLabel(process.env.REDIS_URL)}`);
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

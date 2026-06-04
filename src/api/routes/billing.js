@@ -8,13 +8,55 @@ import { supabase } from '../../lib/supabase.js';
 
 export const billingRouter = Router();
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn('[Billing] WARN: STRIPE_SECRET_KEY no configurado.');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const PRICE_MONTHLY = process.env.STRIPE_PRICE_ID_MONTHLY;
 const PRICE_YEARLY = process.env.STRIPE_PRICE_ID_YEARLY;
+const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+
+let stripeClient;
+
+function isPlaceholder(value) {
+  return !value || /x{4,}|tu_|placeholder|example/i.test(value);
+}
+
+function isStripeSecretKey(value) {
+  return /^sk_(live|test)_[A-Za-z0-9_]+$/.test(value || '') && !isPlaceholder(value);
+}
+
+function isStripePriceId(value) {
+  return /^price_[A-Za-z0-9_]+$/.test(value || '') && !isPlaceholder(value);
+}
+
+function getStripe() {
+  if (!isStripeSecretKey(process.env.STRIPE_SECRET_KEY)) {
+    return null;
+  }
+  stripeClient ||= new Stripe(process.env.STRIPE_SECRET_KEY);
+  return stripeClient;
+}
+
+function getAllowedPrices() {
+  return [PRICE_MONTHLY, PRICE_YEARLY].filter(isStripePriceId);
+}
+
+function resolvePriceId(inputPriceId) {
+  const allowed = getAllowedPrices();
+  if (allowed.length === 0) return null;
+  if (!inputPriceId) return PRICE_MONTHLY && allowed.includes(PRICE_MONTHLY) ? PRICE_MONTHLY : allowed[0];
+  return allowed.includes(inputPriceId) ? inputPriceId : undefined;
+}
+
+function safeReturnUrl(candidate, fallbackPath) {
+  const fallback = new URL(fallbackPath, APP_URL).toString();
+  if (!candidate) return fallback;
+
+  try {
+    const appOrigin = new URL(APP_URL).origin;
+    const url = new URL(candidate);
+    return url.origin === appOrigin ? url.toString() : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * POST /api/billing/create-checkout
@@ -22,12 +64,23 @@ const PRICE_YEARLY = process.env.STRIPE_PRICE_ID_YEARLY;
  */
 billingRouter.post('/create-checkout', requireAuth, async (req, res) => {
   try {
+    const stripe = getStripe();
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe no esta configurado en el servidor.' });
+    }
+
     const { priceId, successUrl, cancelUrl } = req.body || {};
-    const effectivePriceId = priceId || PRICE_MONTHLY;
+    const effectivePriceId = resolvePriceId(priceId);
+
+    if (effectivePriceId === null) {
+      return res.status(400).json({
+        error: 'No se configuro ningun Stripe Price ID valido en el servidor.',
+      });
+    }
 
     if (!effectivePriceId) {
       return res.status(400).json({
-        error: 'No se configuró STRIPE_PRICE_ID_MONTHLY en el servidor ni se envió priceId.',
+        error: 'El Price ID solicitado no esta permitido.',
       });
     }
 
@@ -56,8 +109,8 @@ billingRouter.post('/create-checkout', requireAuth, async (req, res) => {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: effectivePriceId, quantity: 1 }],
-      success_url: successUrl || `${process.env.APP_URL || 'http://localhost:3000'}/dashboard?checkout=success`,
-      cancel_url: cancelUrl || `${process.env.APP_URL || 'http://localhost:3000'}/pricing`,
+      success_url: safeReturnUrl(successUrl, '/dashboard?checkout=success'),
+      cancel_url: safeReturnUrl(cancelUrl, '/settings'),
       metadata: { userId: req.userId },
     });
 
@@ -74,6 +127,11 @@ billingRouter.post('/create-checkout', requireAuth, async (req, res) => {
  */
 billingRouter.post('/create-portal', requireAuth, async (req, res) => {
   try {
+    const stripe = getStripe();
+    if (!stripe) {
+      return res.status(503).json({ error: 'Stripe no esta configurado en el servidor.' });
+    }
+
     const { data, error } = await supabase
       .from('stripe_customers')
       .select('stripe_customer_id')
@@ -87,7 +145,7 @@ billingRouter.post('/create-portal', requireAuth, async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: data.stripe_customer_id,
-      return_url: `${process.env.APP_URL || 'http://localhost:3000'}/settings`,
+      return_url: new URL('/settings', APP_URL).toString(),
     });
 
     res.json({ url: session.url });
