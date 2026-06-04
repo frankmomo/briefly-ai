@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Sparkles, Mail, FileText, Calendar, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 
 const features = [
   {
@@ -89,13 +90,12 @@ export default function HomePage() {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <a
-              href="/api/auth/google/url"
+            <GoogleLoginButton
               className="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3.5 rounded-xl font-semibold text-base transition-all hover:scale-[1.02] active:scale-[0.98] inline-flex items-center gap-2"
             >
               Conectar con Google
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </GoogleLoginButton>
             <Link
               href="#features"
               className="text-neutral-400 hover:text-white px-6 py-3.5 rounded-xl border border-neutral-800 hover:border-neutral-700 font-medium transition-colors"
@@ -167,8 +167,7 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="/api/auth/google/url"
+                <GoogleLoginButton
                   className={`text-center py-3 rounded-xl font-medium transition-all text-sm ${
                     plan.highlighted
                       ? 'bg-brand-600 hover:bg-brand-500 text-white'
@@ -176,7 +175,7 @@ export default function HomePage() {
                   }`}
                 >
                   {plan.cta}
-                </a>
+                </GoogleLoginButton>
               </div>
             ))}
           </div>

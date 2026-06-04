@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, LogOut, Settings, LayoutDashboard } from 'lucide-react';
+import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 
 export function Navbar() {
   const { user, token, logout } = useAuth();
@@ -52,12 +53,11 @@ export function Navbar() {
               </div>
             </>
           ) : (
-            <a
-              href={process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL || '/api/auth/google/url'}
+            <GoogleLoginButton
               className="text-sm bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Iniciar sesión
-            </a>
+            </GoogleLoginButton>
           )}
         </div>
       </div>

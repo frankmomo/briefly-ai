@@ -2,7 +2,7 @@
 // src/lib/api.ts — Cliente API tipado
 // ============================================================
 
-const API_BASE = '/api';
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api`;
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;

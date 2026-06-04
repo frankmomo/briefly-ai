@@ -12,7 +12,7 @@ Micro-SaaS de briefings ejecutivos generados desde Gmail, Drive y Calendar.
 - Upstash o Redis: cola BullMQ.
 
 Vercel no aloja la API Express. El frontend usa `NEXT_PUBLIC_API_URL` para
-reenviar `/api/*` al dominio publico de Railway.
+llamar directamente al dominio publico de Railway.
 
 ## Desarrollo local
 
