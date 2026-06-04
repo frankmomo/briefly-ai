@@ -102,7 +102,7 @@ function buildUserContent({ emails, driveFiles, calendarEvents }) {
   const maxFiles = Math.min(driveFiles?.length || 0, 3);
   for (let i = 0; i < maxFiles; i++) {
     const d = driveFiles[i];
-    content += `- "${d.name || 'sin nombre'}" (${d.mimeType || 'desconocido'}`);
+    content += `- "${d.name || 'sin nombre'}" (${d.mimeType || 'desconocido'}`;
     if (d.modifiedTime) content += `, modificado: ${new Date(d.modifiedTime).toLocaleDateString('es-MX')}`;
     content += ')\n';
   }
