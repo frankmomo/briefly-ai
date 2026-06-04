@@ -38,6 +38,9 @@ Crea `.env` desde `.env.example` y `web/.env.local` desde `web/.env.example`.
 
 Configura las variables de `.env.example` en ambos servicios. Las claves
 criticas son Supabase, Redis, OpenAI, Google OAuth, Stripe y `JWT_SECRET`.
+No despliegues valores de ejemplo como `localhost`, `tu_*`, `sk_*_tu_*` o
+URLs de proyecto ficticias: la API puede responder al healthcheck aunque las
+integraciones todavia no sean utilizables.
 
 - `APP_URL`: URL publica de Vercel, por ejemplo `https://briefly-ai-one.vercel.app`.
 - `GOOGLE_REDIRECT_URI`: callback del frontend, por ejemplo
@@ -57,6 +60,11 @@ criticas son Supabase, Redis, OpenAI, Google OAuth, Stripe y `JWT_SECRET`.
 
 El servicio API usa `Dockerfile`; el worker usa `Dockerfile.worker`.
 
+Configura en proveedores externos:
+
+- Google OAuth redirect URI: `https://briefly-ai-one.vercel.app/callback`.
+- Stripe webhook: `https://briefly-ai-production.up.railway.app/api/webhooks/stripe`.
+
 ## Vercel
 
 El proyecto Vercel debe apuntar a `web/` como raiz o desplegarse desde esa
@@ -74,4 +82,3 @@ El workflow `.github/workflows/ci.yml`:
 Requiere el secreto `VERCEL_TOKEN` en GitHub. Railway puede desplegar por su
 integracion nativa con GitHub, evitando tokens y seleccion ambigua de servicios
 en el workflow.
-
