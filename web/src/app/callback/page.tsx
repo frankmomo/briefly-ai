@@ -30,6 +30,7 @@ function CallbackContent() {
 
   useEffect(() => {
     const code = searchParams.get('code');
+    const state = searchParams.get('state');
     const errorParam = searchParams.get('error');
 
     if (errorParam) {
@@ -44,6 +45,14 @@ function CallbackContent() {
 
     (async () => {
       try {
+        const expectedState = sessionStorage.getItem('briefly_oauth_state');
+        sessionStorage.removeItem('briefly_oauth_state');
+
+        if (!state || !expectedState || state !== expectedState) {
+          setError('La respuesta de Google no coincide con la sesión iniciada. Intenta de nuevo.');
+          return;
+        }
+
         const result = await exchangeGoogleCode(code);
         login(result.token, result.user);
         router.push('/dashboard');
@@ -57,7 +66,8 @@ function CallbackContent() {
   const handleRetry = async () => {
     setRetrying(true);
     try {
-      const { url } = await getGoogleAuthUrl();
+      const { url, state } = await getGoogleAuthUrl();
+      sessionStorage.setItem('briefly_oauth_state', state);
       window.location.href = url;
     } catch {
       setError('No se pudo obtener la URL de autenticación.');

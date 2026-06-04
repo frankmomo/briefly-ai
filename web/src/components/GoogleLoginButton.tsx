@@ -14,7 +14,8 @@ export function GoogleLoginButton({ children, className }: GoogleLoginButtonProp
   const handleLogin = async () => {
     setLoading(true);
     try {
-      const { url } = await getGoogleAuthUrl();
+      const { url, state } = await getGoogleAuthUrl();
+      sessionStorage.setItem('briefly_oauth_state', state);
       window.location.href = url;
     } catch (error) {
       console.error('[GoogleLoginButton] Unable to start Google OAuth:', error);
