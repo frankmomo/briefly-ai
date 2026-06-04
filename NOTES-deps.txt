@@ -1,0 +1,11 @@
+# ============================================================
+# Dependencies adicionales para email + bot de prospección
+# Ejecutar: npm install en la raíz de briefly-ai
+# ============================================================
+# Ya existentes:
+#   nodemailer, @supabase/supabase-js, bullmq, ioredis, etc.
+#
+# Nuevas:
+#   @sendgrid/mail   — para envío transaccional de emails
+#   puppeteer         — para scraping (bot de afiliados)
+#   twitter-api-v2    — para Twitter API v2 (opcional, podríamos hacerlo manual)
