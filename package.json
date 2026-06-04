@@ -12,6 +12,7 @@
     "check": "node --check src/api/server.js && node --check src/worker/summarizer-worker.js && node --check src/cron/daily-digest.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.39.0",
     "bullmq": "^5.1.0",
     "cors": "^2.8.5",
