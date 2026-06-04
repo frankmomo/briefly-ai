@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node src/api/server.js",
-    "start": "node src/api/server.js",
+    "start": "node start.js",
     "worker": "node src/worker/summarizer-worker.js",
     "digest:cron": "node src/cron/daily-digest.js",
     "check": "node --check src/api/server.js && node --check src/worker/summarizer-worker.js && node --check src/cron/daily-digest.js"
