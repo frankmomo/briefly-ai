@@ -18,7 +18,7 @@ function isPlaceholder(value) {
 }
 
 function isStripeSecretKey(value) {
-  return /^sk_(live|test)_[A-Za-z0-9_]+$/.test(value || '') && !isPlaceholder(value);
+  return /^(s|r)k_(live|test)_[A-Za-z0-9_]+$/.test(value || '') && !isPlaceholder(value);
 }
 
 function isWebhookSecret(value) {
